@@ -67,6 +67,7 @@ body{--shake:calc(var(--heat)*6px)}
 .code{font-size:56px;font-weight:900;letter-spacing:.15em;text-align:center;color:var(--accent);margin-bottom:8px}
 #bomb:disabled{filter:grayscale(.5) drop-shadow(0 10px 18px rgba(0,0,0,.3));cursor:default}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 <body>
 <button id="mute" class="ghost" aria-label="Sound">🔊</button>
@@ -144,7 +145,7 @@ function setup(){
     S.players.forEach(function(p,i){h+='<div class="row"><input data-i="'+i+'" value="'+esc(p)+'" placeholder="Player '+(i+1)+'" maxlength="14">'+(S.players.length>2?'<button class="x" data-del="'+i+'">✕</button>':'')+'</div>'});
     h+='<button class="ghost" id="add"'+(S.players.length>=8?' disabled':'')+'>+ Add player</button></div><button class="big" id="go">Start game</button>';
   }else if(!room){
-    h+='<div class="card sub">Online play isn’t available on this site yet. Use Same phone and pass the device around.</div>';
+    h+='<div class="card sub">Couldn’t load online play. Check your connection and reload, or use Same phone.</div>';
   }else{
     h+='<div class="card"><b>Your name</b><div style="height:8px"></div><input id="me" value="'+esc(S.me)+'" placeholder="Name" maxlength="14"><div style="height:10px"></div><button class="big" id="mk">Create room</button></div><div class="card"><b>Join a friend’s room</b><div class="row" style="margin-top:8px"><input id="cd" placeholder="Code" maxlength="4" style="text-transform:uppercase"><button id="jn">Join</button></div></div>'+(S.err?'<p class="sub" style="color:var(--danger)">'+esc(S.err)+'</p>':'');
   }
@@ -161,7 +162,7 @@ function goLocal(){ctx();online=false;net=null;isHost=true;G={phase:"lobby",mode
 function goOnline(create){ctx();var c=create?Array.apply(null,Array(4)).map(function(){return"abcdefghjkmnpqrstuvwxyz23456789"[Math.random()*31|0]}).join(""):($("cd").value||"").trim().toLowerCase();
   if(!/^[a-z0-9]{4}$/.test(c)){S.err="Enter the 4-character room code.";return setup()}
   var nm=($("me")?$("me").value:S.me).trim()||"Player";S.me=nm;
-  room.join("bp-"+c).then(function(r){net=r;online=true;isHost=!!create;r.on("g",onMsg);
+  room.join("bp-"+c,!!create).then(function(r){net=r;online=true;isHost=!!create;r.on("g",onMsg);
     G=create?{phase:"lobby",mode:S.mode,p:[],cur:0,dir:1,round:0,code:c}:null;S.code=c;
     A("join",{n:nm});render()}).catch(function(){S.err="Couldn’t join that room. Try again.";setup()})}
 function waiting(){app.innerHTML='<div class="stage center"><div style="font-size:80px">⏳</div><div class="prompt">Joining room '+esc(S.code.toUpperCase())+'…</div><p class="sub">Waiting for the host.</p></div><button class="big ghost" id="bk">Back</button>';on("bk",leave)}
@@ -189,7 +190,18 @@ function render(){
 /* ---------- boot ---------- */
 $("mute").onclick=function(){muted=!muted;this.textContent=muted?"🔇":"🔊"};
 setInterval(function(){if(!online)return;if(isHost&&G)send({t:"s",g:G});else if(!G||(G.phase==="lobby"&&!G.p.some(function(p){return p.peer===myPeer})))A("join",{n:S.me||"Player"})},2500);
-try{if(window.claude&&claude.use)claude.use("room").then(function(r){room=r;if(!G&&!online&&S.tab==="online")setup()}).catch(function(){})}catch(e){}
+room=window.Peer?{join:function(name,create){return new Promise(function(res,rej){
+  var hs=[],conns={},host=null,ready=0,p=create?new Peer("bombpass1-"+name):new Peer();
+  function deliver(m){hs.forEach(function(f){f(m)})}
+  function fail(){if(!ready){ready=1;try{p.destroy()}catch(e){}rej()}}
+  function ok(){if(!ready){ready=1;res(net)}}
+  var net={emit:function(t,d){var me=create?"host":p.id;setTimeout(function(){deliver({data:d,isMe:true,sameTab:true,peer:me})},0);
+      if(create){for(var k in conns)if(conns[k].open)conns[k].send({d:d,from:"host"})}else if(host&&host.open)host.send({d:d});return Promise.resolve()},
+    on:function(t,f){hs.push(f);return function(){}},leave:function(){try{p.destroy()}catch(e){}return Promise.resolve()}};
+  setTimeout(fail,12000);p.on("error",fail);
+  if(create){p.on("open",ok);p.on("connection",function(c){c.on("open",function(){conns[c.peer]=c});c.on("data",function(x){if(!x||x.d===undefined)return;deliver({data:x.d,isMe:false,sameTab:false,peer:c.peer});for(var k in conns)if(k!==c.peer&&conns[k].open)conns[k].send({d:x.d,from:c.peer})});c.on("close",function(){delete conns[c.peer]})})}
+  else{p.on("open",function(){host=p.connect("bombpass1-"+name,{reliable:true});host.on("open",ok);host.on("data",function(x){if(x&&x.d!==undefined)deliver({data:x.d,isMe:false,sameTab:false,peer:x.from})});host.on("error",fail)})}
+})}}:null;
 setup();
 
 </script>
