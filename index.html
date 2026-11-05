@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bomb Pass</title>
+<style>
+:root{--bg:#fff7ec;--fg:#2a1a12;--card:#ffffff;--muted:#8a7565;--accent:#ff6b2c;--danger:#e11d48;--ok:#16a34a;--line:#f0dfcc;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1210;--fg:#fff1e3;--card:#2a1e19;--muted:#b49a88;--line:#3d2c24;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1a1210;--fg:#fff1e3;--card:#2a1e19;--muted:#b49a88;--line:#3d2c24;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+#app{min-height:100%;display:flex;flex-direction:column;padding:20px;max-width:520px;margin:0 auto}
+h1{font-size:34px;margin:8px 0 4px;text-align:center}
+.sub{text-align:center;color:var(--muted);margin:0 0 18px;line-height:1.4}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:8px;margin-bottom:8px}
+input{flex:1;min-width:0;font-size:17px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+button{font:inherit;cursor:pointer;border:0;border-radius:14px;padding:14px 18px;font-weight:700;color:#fff;background:var(--accent)}
+button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+button.x{padding:0 14px;background:transparent;color:var(--muted);font-size:20px}
+.big{width:100%;font-size:20px;padding:18px}
+.lives{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0 12px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px}
+.chip.cur{border-color:var(--accent);outline:2px solid var(--accent)}
+.chip.out{opacity:.35;text-decoration:line-through}
+.prompt{font-size:24px;font-weight:800;text-align:center;line-height:1.25;margin:10px 0 6px}
+.who{text-align:center;color:var(--muted);font-size:17px}
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+#bomb{font-size:150px;line-height:1;background:none;padding:0;border-radius:50%;transition:transform .08s}
+#bomb.pulse{transform:scale(1.14)}
+.boom{font-size:120px;animation:pop .5s}
+@keyframes pop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+.center{text-align:center}
+:root{--heat:0;--shadow:0 6px 0 rgba(0,0,0,.14)}
+body{background:radial-gradient(120% 70% at 50% 0%,color-mix(in srgb,var(--accent) 22%,var(--bg)),var(--bg) 70%) fixed,var(--bg);transition:background .3s}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 calc(var(--heat)*140px) calc(var(--heat)*40px) rgba(225,29,72,.55);opacity:var(--heat)}
+h1{font-size:40px;letter-spacing:-.02em;background:linear-gradient(90deg,var(--accent),var(--danger));-webkit-background-clip:text;background-clip:text;color:transparent}
+.card{box-shadow:0 4px 18px rgba(0,0,0,.06);border-radius:22px;padding:16px}
+button{transition:transform .1s,box-shadow .1s,filter .15s;box-shadow:var(--shadow)}
+button:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.14);filter:brightness(.95)}
+button.ghost,button.x,#bomb{box-shadow:none}
+button.big{border-radius:20px;background:linear-gradient(180deg,var(--accent),color-mix(in srgb,var(--accent) 80%,#b91c1c));min-height:60px}
+button.big.ghost{background:transparent}
+button[data-l]{border-radius:14px}
+button:disabled{opacity:.4}
+input:focus{outline:2px solid var(--accent);border-color:transparent}
+.chip{display:inline-flex;align-items:center;gap:6px;font-weight:600;transition:transform .2s}
+.chip .dot{width:10px;height:10px;border-radius:50%;background:var(--c)}
+.chip.cur{transform:scale(1.08);background:var(--c);color:#fff;border-color:transparent;outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 35%,transparent)}
+.chip.cur .dot{background:#fff}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px 18px;box-shadow:0 4px 18px rgba(0,0,0,.06);width:100%}
+#bomb{width:230px;height:230px;display:grid;place-items:center;font-size:130px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) calc(18% + var(--heat)*40%),transparent),transparent 68%);filter:drop-shadow(0 10px 18px rgba(0,0,0,.3))}
+#bomb.pulse{transform:scale(1.12)}
+body{--shake:calc(var(--heat)*6px)}
+#bomb{animation:wob .18s infinite alternate}
+@keyframes wob{from{rotate:calc(var(--heat)*-6deg)}to{rotate:calc(var(--heat)*6deg)}}
+.boom{animation:pop .5s,shake .5s .1s}
+@keyframes shake{20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.stage{animation:in .25s}
+@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+#mute{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;z-index:6;padding:8px 12px;font-size:18px;border-radius:999px;background:var(--card)}
+.twist{font-weight:800;font-size:20px;color:var(--accent);animation:pop .4s}
+.code{font-size:56px;font-weight:900;letter-spacing:.15em;text-align:center;color:var(--accent);margin-bottom:8px}
+#bomb:disabled{filter:grayscale(.5) drop-shadow(0 10px 18px rgba(0,0,0,.3));cursor:default}
+</style>
+</head>
+<body>
+<button id="mute" class="ghost" aria-label="Sound">🔊</button>
+<div id="app"></div>
+<script>
+var PROMPTS=["Name a pizza topping","Name a country in Africa","Name something you find in a kitchen","Name a Disney movie","Name a type of dog","Name something that’s red","Name a famous athlete","Name a board game","Name a fruit that isn’t an apple","Name a superhero","Name something you’d take camping","Name a city in Europe","Name a song title","Name a school subject","Name an ice cream flavor","Name something with wheels","Name a job that starts with any letter","Name a musical instrument","Name an animal in the ocean","Name something you can fold","Name a TV show","Name a candy bar","Name a word that rhymes with “cat”","Name something found in a bathroom","Name a thing that’s round","Name a cartoon character","Name a sport played with a ball","Name a breakfast food","Name something you plug in","Name a color that’s not a rainbow color","Name a video game","Name something that flies","Name a famous landmark","Name a vegetable you dislike","Name something that’s cold","Name a word with double letters","Name a thing in a park","Name a movie with a sequel","Name a brand of shoes","Name an excuse for being late"];
+var MODES={classic:{n:"Classic",e:"💣",d:"3 lives, steady fuse.",l:3,a:7,b:22},chaos:{n:"Chaos",e:"🌪️",d:"3 lives plus random twists: reverse, skip, faster fuse, bonus time.",l:3,a:7,b:22,tw:1},speed:{n:"Speed",e:"⚡",d:"2 lives, short fuse. Think fast!",l:2,a:3,b:9}};
+var S={tab:"local",mode:"classic",players:["","",""],me:"",err:""};
+var G=null,room=null,net=null,online=false,isHost=true,myPeer=null,H={used:[]},muted=false,ac=null;
+var app=document.getElementById("app");
+function $(id){return document.getElementById(id)}
+function on(id,f){var e=$(id);if(e)e.onclick=f}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function heat(v){document.documentElement.style.setProperty("--heat",v)}
+function ctx(){ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume();return ac}
+function tone(f,d,ty,v,to,delay){setTimeout(function(){try{if(muted)return;var c=ctx(),o=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type=ty||"square";o.frequency.setValueAtTime(f,t);if(to)o.frequency.exponentialRampToValueAtTime(to,t+d);g.gain.setValueAtTime(v||.06,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d)}catch(e){}},delay||0)}
+function noise(d){try{if(muted)return;var c=ctx(),n=c.sampleRate*d|0,b=c.createBuffer(1,n,c.sampleRate),x=b.getChannelData(0);for(var i=0;i<n;i++)x[i]=(Math.random()*2-1)*(1-i/n);var s=c.createBufferSource(),g=c.createGain();s.buffer=b;g.gain.value=.25;s.connect(g);g.connect(c.destination);s.start()}catch(e){}}
+function vib(p){try{if(!muted&&navigator.vibrate)navigator.vibrate(p)}catch(e){}}
+
+/* ---------- messaging ---------- */
+function send(d){if(net){net.emit("g",d).catch(function(){})}else onMsg({data:d,isMe:true,sameTab:true,peer:null})}
+function A(a,x){var d={t:"act",a:a};for(var k in x)d[k]=x[k];send(d)}
+function ev(d){send({t:"e",d:d})}
+function bc(){send({t:"s",g:G});render()}
+function onMsg(m){var d=m.data;if(!d||typeof d!=="object")return;if(m.isMe&&m.sameTab)myPeer=m.peer;
+  if(d.t==="s"){if(!isHost&&d.g){G=d.g;render()}}
+  else if(d.t==="e"&&d.d)onEv(d.d);
+  else if(d.t==="act"&&isHost&&G)act(m)}
+
+/* ---------- host engine ---------- */
+function act(m){var d=m.data,g=G,a=d.a,h=g.p[g.cur],mine=!online||(h&&h.peer===m.peer);
+  if(a==="join"){if(g.phase!=="lobby"||g.p.length>=8||g.p.some(function(p){return p.peer===m.peer}))return;g.p.push({name:String(d.n||"Player").slice(0,14),lives:0,sh:1,arm:0,peer:m.peer});bc()}
+  else if(a==="mode"&&m.isMe&&g.phase==="lobby"&&MODES[d.m]){g.mode=d.m;bc()}
+  else if(a==="start"&&m.isMe&&g.phase==="lobby"&&g.p.length>1)startGame();
+  else if(a==="again"&&m.isMe&&g.phase==="win")startGame();
+  else if(a==="next"&&m.isMe&&g.phase==="boom")newRound();
+  else if(a==="arm"&&g.phase==="ready"&&(m.isMe||mine))arm();
+  else if(a==="pass"&&g.phase==="play"&&mine&&Date.now()>H.lock)pass();
+  else if(a==="sh"&&g.phase==="play"&&mine&&h.sh){h.sh=0;h.arm=1;ev({k:"sh"});bc()}}
+function startGame(){var M=MODES[G.mode];G.p.forEach(function(p){p.lives=M.l;p.sh=1;p.arm=0});G.dir=1;G.round=0;G.cur=Math.floor(Math.random()*G.p.length);H.used=[];newRound()}
+function step(){var n=G.p.length;do{G.cur=(G.cur+G.dir+n)%n}while(G.p[G.cur].lives<1)}
+function pick(){if(H.used.length>=PROMPTS.length)H.used=[];var i;do{i=Math.random()*PROMPTS.length|0}while(H.used.indexOf(i)>-1);H.used.push(i);return PROMPTS[i]}
+function newRound(){clearTimeout(H.tick);if(G.p[G.cur].lives<1)step();G.round++;G.prompt=pick();G.phase="ready";G.twist="";G.heat=0;G.saved=0;bc()}
+function arm(){var M=MODES[G.mode];H.fuse=(M.a+Math.random()*(M.b-M.a))*1000;H.t0=Date.now();H.lock=0;G.phase="play";G.heat=0;G.twist="";bc();tick()}
+function tick(){if(G.phase!=="play")return;var el=Date.now()-H.t0;if(el>=H.fuse)return boom();var f=el/H.fuse;G.heat=f;ev({k:"tick",f:+f.toFixed(2)});H.tick=setTimeout(tick,Math.max(online?260:110,650*(1-f)+110))}
+function pass(){G.twist="";H.lock=Date.now()+350;step();ev({k:"pass"});
+  if(MODES[G.mode].tw&&Math.random()<.22){var k=Math.random()*4|0,el=Date.now()-H.t0;
+    if(k===0){G.dir*=-1;G.twist="🔄 Reversed!"}else if(k===1){step();G.twist="⏭️ Skipped!"}else if(k===2){H.fuse=el+(H.fuse-el)*.4;G.twist="⚡ Fuse speeds up!"}else{H.fuse+=3000;G.twist="🧊 Bonus time!"}
+    ev({k:"tw"})}
+  bc()}
+function boom(){clearTimeout(H.tick);var p=G.p[G.cur];if(p.arm){p.arm=0;G.saved=1}else{p.lives--;G.saved=0}G.heat=0;
+  var left=G.p.filter(function(q){return q.lives>0});
+  if(left.length<2){G.phase="win";G.winner=left[0]?left[0].name:"Nobody"}else G.phase="boom";
+  ev({k:G.phase==="win"?"win":"boom",s:G.saved});bc()}
+
+/* ---------- sound & haptics ---------- */
+function onEv(d){var k=d.k;
+  if(k==="tick"){heat((d.f*d.f).toFixed(2));var b=$("bomb");if(b){b.classList.add("pulse");setTimeout(function(){b.classList.remove("pulse")},90)}tone(300+d.f*600,.06);if(d.f>.7)vib(20)}
+  else if(k==="pass"){tone(380,.12,"triangle",.08,900);vib(15)}
+  else if(k==="tw"){tone(660,.1,"sine",.08);tone(990,.15,"sine",.08,0,110);vib([30,40,30])}
+  else if(k==="sh"){tone(500,.25,"sine",.1,1300);vib(40)}
+  else if(k==="boom"||k==="win"){heat(0);
+    if(d.s){tone(800,.2,"sine",.1,400);tone(1200,.25,"sine",.1,0,120);vib(80)}else{noise(.7);tone(130,.5,"sawtooth",.15,30);vib([200,60,300])}
+    if(k==="win"){[523,659,784,1047].forEach(function(f,i){tone(f,.25,"triangle",.1,0,700+i*140)});vib([100,50,100,50,300])}}}
+
+/* ---------- screens ---------- */
+function mrow(sel){return '<div class="card"><div class="row">'+Object.keys(MODES).map(function(k){return '<button data-m="'+k+'" class="'+(sel===k?'':'ghost')+'" style="flex:1;padding:12px 6px">'+MODES[k].e+' '+MODES[k].n+'</button>'}).join("")+'</div><div class="sub" style="margin:6px 0 0;font-size:14px">'+MODES[sel].d+'</div></div>'}
+function bindM(f){app.querySelectorAll("[data-m]").forEach(function(b){b.onclick=function(){f(b.dataset.m)}})}
+function chips(){return '<div class="lives">'+G.p.map(function(p,i){var on=G.phase==="play"&&i===G.cur&&p.lives>0;return '<span class="chip '+(p.lives<1&&G.phase!=="lobby"?'out ':'')+(on?'cur':'')+'" style="--c:hsl('+(i*47%360)+' 80% 50%)"><i class="dot"></i>'+esc(p.name)+(p.peer&&p.peer===myPeer?' (you)':'')+' '+(p.lives>0?'❤️'.repeat(p.lives):'')+(p.sh&&G.phase!=="lobby"?'🛡️':'')+'</span>'}).join("")+'</div>'}
+function setup(){
+  var h='<h1>💣 Bomb Pass</h1><p class="sub">Pass the bomb, answer fast, and don’t be holding it when it blows!</p>'+mrow(S.mode);
+  h+='<div class="row"><button data-tab="local" class="'+(S.tab==="local"?'':'ghost')+'" style="flex:1">📱 Same phone</button><button data-tab="online" class="'+(S.tab==="online"?'':'ghost')+'" style="flex:1">🌐 Online</button></div>';
+  if(S.tab==="local"){
+    h+='<div class="card"><b>Players</b><div style="height:8px"></div>';
+    S.players.forEach(function(p,i){h+='<div class="row"><input data-i="'+i+'" value="'+esc(p)+'" placeholder="Player '+(i+1)+'" maxlength="14">'+(S.players.length>2?'<button class="x" data-del="'+i+'">✕</button>':'')+'</div>'});
+    h+='<button class="ghost" id="add"'+(S.players.length>=8?' disabled':'')+'>+ Add player</button></div><button class="big" id="go">Start game</button>';
+  }else if(!room){
+    h+='<div class="card sub">Online play isn’t available on this site yet. Use Same phone and pass the device around.</div>';
+  }else{
+    h+='<div class="card"><b>Your name</b><div style="height:8px"></div><input id="me" value="'+esc(S.me)+'" placeholder="Name" maxlength="14"><div style="height:10px"></div><button class="big" id="mk">Create room</button></div><div class="card"><b>Join a friend’s room</b><div class="row" style="margin-top:8px"><input id="cd" placeholder="Code" maxlength="4" style="text-transform:uppercase"><button id="jn">Join</button></div></div>'+(S.err?'<p class="sub" style="color:var(--danger)">'+esc(S.err)+'</p>':'');
+  }
+  app.innerHTML=h;heat(0);
+  bindM(function(m){S.mode=m;setup()});
+  app.querySelectorAll("[data-tab]").forEach(function(b){b.onclick=function(){S.tab=b.dataset.tab;S.err="";setup()}});
+  app.querySelectorAll("[data-i]").forEach(function(el){el.oninput=function(){S.players[+el.dataset.i]=el.value}});
+  app.querySelectorAll("[data-del]").forEach(function(b){b.onclick=function(){S.players.splice(+b.dataset.del,1);setup()}});
+  on("add",function(){S.players.push("");setup()});on("go",goLocal);
+  var me=$("me");if(me)me.oninput=function(){S.me=me.value};
+  on("mk",function(){goOnline(1)});on("jn",function(){goOnline(0)});
+}
+function goLocal(){ctx();online=false;net=null;isHost=true;G={phase:"lobby",mode:S.mode,p:S.players.map(function(n,i){return{name:(n||"").trim().slice(0,14)||"Player "+(i+1),lives:0,sh:1,arm:0}}),cur:0,dir:1,round:0,code:""};startGame()}
+function goOnline(create){ctx();var c=create?Array.apply(null,Array(4)).map(function(){return"abcdefghjkmnpqrstuvwxyz23456789"[Math.random()*31|0]}).join(""):($("cd").value||"").trim().toLowerCase();
+  if(!/^[a-z0-9]{4}$/.test(c)){S.err="Enter the 4-character room code.";return setup()}
+  var nm=($("me")?$("me").value:S.me).trim()||"Player";S.me=nm;
+  room.join("bp-"+c).then(function(r){net=r;online=true;isHost=!!create;r.on("g",onMsg);
+    G=create?{phase:"lobby",mode:S.mode,p:[],cur:0,dir:1,round:0,code:c}:null;S.code=c;
+    A("join",{n:nm});render()}).catch(function(){S.err="Couldn’t join that room. Try again.";setup()})}
+function waiting(){app.innerHTML='<div class="stage center"><div style="font-size:80px">⏳</div><div class="prompt">Joining room '+esc(S.code.toUpperCase())+'…</div><p class="sub">Waiting for the host.</p></div><button class="big ghost" id="bk">Back</button>';on("bk",leave)}
+function leave(){try{net&&net.leave()}catch(e){}net=null;online=false;G=null;isHost=true;setup()}
+function render(){
+  if(!G)return online?waiting():setup();
+  var g=G,ph=g.phase,h=g.p[g.cur],mine=!online||(h&&h.peer===myPeer),nm=h?esc(h.name):"",s="";
+  heat(ph==="play"?(g.heat*g.heat).toFixed(2):0);
+  if(ph==="lobby"){
+    s='<h1>Room</h1><div class="code">'+esc(g.code.toUpperCase())+'</div><p class="sub">Friends open this page, tap Online, and enter the code.</p>'+chips()+(isHost?mrow(g.mode)+'<button class="big" id="st"'+(g.p.length<2?' disabled':'')+'>Start game ('+g.p.length+' in)</button>':'<p class="sub">Mode: '+MODES[g.mode].e+' '+MODES[g.mode].n+'. Waiting for the host to start…</p>');
+  }else if(ph==="ready"){
+    s=chips()+'<div class="stage"><div class="who">Round '+g.round+'</div><div class="prompt pcard">'+esc(g.prompt)+'</div><div style="font-size:90px">💣</div><div class="who">First up: <b>'+nm+'</b></div></div>'+((isHost||mine)?'<button class="big" id="arm">Light the fuse 🔥</button>':'<p class="sub">Waiting for the fuse…</p>');
+  }else if(ph==="play"){
+    s=chips()+'<div class="stage"><div class="prompt pcard">'+esc(g.prompt)+'</div>'+(g.twist?'<div class="twist">'+esc(g.twist)+'</div>':'')+'<div class="who">Holding the bomb:</div><div class="prompt" style="color:var(--accent);margin:0">'+nm+'</div><button id="bomb"'+(mine?'':' disabled')+'>💣</button><div class="who">'+(mine?'Say an answer, then tap the bomb to pass!':'Not your turn. Hope you’re safe!')+'</div>'+(mine&&h.sh?'<button class="ghost" id="sh">🛡️ Use shield (saves you from one blast)</button>':'')+'</div>';
+  }else if(ph==="boom"){
+    s=chips()+'<div class="stage center"><div class="boom">'+(g.saved?'🛡️':'💥')+'</div><div class="prompt">'+nm+(g.saved?'’s shield saved them!':' got blown up!')+'</div><div class="who">'+(g.saved?'Shield used up':(h.lives>0?h.lives+' '+(h.lives===1?'life':'lives')+' left':'Eliminated 💀'))+'</div></div>'+(isHost?'<button class="big" id="next">Next round</button>':'<p class="sub">Waiting for the host…</p>');
+  }else{
+    s='<div class="stage center"><div class="boom">🏆</div><h1>'+esc(g.winner)+' wins!</h1><p class="sub">Last one standing. Legendary.</p></div>'+(isHost?'<button class="big" id="again">Play again</button><div style="height:8px"></div><button class="big ghost" id="menu">'+(online?'Leave room':'Change players')+'</button>':'<p class="sub">Waiting for the host…</p><button class="big ghost" id="menu">Leave room</button>');
+  }
+  app.innerHTML=s;bindM(function(m){A("mode",{m:m})});
+  on("st",function(){A("start")});on("arm",function(){A("arm")});on("bomb",function(){A("pass")});on("sh",function(){A("sh")});
+  on("next",function(){A("next")});on("again",function(){A("again")});on("menu",function(){online?leave():(G=null,setup())});
+}
+
+/* ---------- boot ---------- */
+$("mute").onclick=function(){muted=!muted;this.textContent=muted?"🔇":"🔊"};
+setInterval(function(){if(!online)return;if(isHost&&G)send({t:"s",g:G});else if(!G||(G.phase==="lobby"&&!G.p.some(function(p){return p.peer===myPeer})))A("join",{n:S.me||"Player"})},2500);
+try{if(window.claude&&claude.use)claude.use("room").then(function(r){room=r;if(!G&&!online&&S.tab==="online")setup()}).catch(function(){})}catch(e){}
+setup();
+
+</script>
+</body>
+</html>
